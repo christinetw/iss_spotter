@@ -1,7 +1,7 @@
 // iss_promised.js
 const request = require('request-promise-native');
 
-const fetchMyIP = function(callback) {
+const fetchMyIP = function (callback) {
   let url = 'https://api.ipify.org?format=json';
   return request(url);
 }
@@ -11,7 +11,7 @@ const fetchMyIP = function(callback) {
  * Input: JSON string containing the IP address
  * Returns: Promise of request for lat/lon
  */
-const fetchCoordsByIP = function(body) {
+const fetchCoordsByIP = function (body) {
   const ip = JSON.parse(body).ip;
   let url = 'https://freegeoip.app/json/' + ip;
   return request(url);
@@ -27,12 +27,22 @@ const fetchCoordsByIP = function(body) {
  *   - The fly over times as an array of objects (null if error). Example:
  *     [ { risetime: 134564234, duration: 600 }, ... ]
  */
- 
-const fetchISSFlyOverTimes = function(body) {
+
+const fetchISSFlyOverTimes = function (body) {
   const jsonData = JSON.parse(body);
   let url = `https://iss-pass.herokuapp.com/json/?lat=${jsonData.latitude}&lon=${jsonData.longitude}`;
   return request(url);
 }
 
-module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes };
+const nextISSTimesForMyLocation = function () {
+  return fetchMyIP()
+    .then(fetchCoordsByIP)
+    .then(fetchISSFlyOverTimes)
+    .then((body) => {
+      const { response } = JSON.parse(body);
+      return response;
+    });
+}
+
+module.exports = { nextISSTimesForMyLocation };
 
